@@ -1,0 +1,68 @@
+common:
+  # The number of historical images
+  img_history_size: 1
+  # The number of future actions to predict
+  action_chunk_size: 32
+  # The number of cameras to be used in the model
+  num_cameras: 1
+  # Dimension for action
+  action_dim: 26 # TODO
+  state_dim: 26
+
+  # 10 for rohand
+  grip_or_hand_latency_frames: 10
+  # 3 for realman arm
+  arm_latency_frames: 3
+
+dataset:
+  # We will filter the episodes with length less than `epsd_len_thresh_low`
+  epsd_len_thresh_low: 32
+  # For those more than `epsd_len_thresh_high`,
+  # we will randomly sample `epsd_len_thresh_high` steps each time we load the episode
+  # to better balance the training datasets
+  epsd_len_thresh_high: 2048
+  # How to fit the image size
+  image_aspect_ratio: pad
+  # Maximum number of language tokens
+  tokenizer_max_length: 1024
+
+model:
+  # Config for condition adpators
+  lang_adaptor: mlp2x_silu
+  img_adaptor: mlp2x_silu
+  act_adaptor: mlp3x_silu
+  state_adaptor: mlp3x_silu
+  lang_token_dim: 4096
+  img_token_dim: 2176
+  # Config for RDT structure
+  rdt:
+    # 498.05M
+    hidden_size: 1024
+    depth: 14
+    num_heads: 16
+
+    # # 3.75B
+    # hidden_size: 2048
+    # depth: 28
+    # num_heads: 32
+
+    num_register_tokens: 4
+    norm_eps: 0.00001
+    # make SwiGLU hidden layer size multiple of large power of 2
+    multiple_of: 256
+    ffn_dim_multiplier: null
+    # Grouped Query Attention
+    num_kv_heads: 8
+    output_size: 26 # i.e., action dimension (TODO)
+    use_flash_attn: true
+  # For noise scheduler (flow matching)
+  noise_scheduler:
+    num_inference_timesteps: 5
+  # For EMA (params averaging)
+  # We do not use EMA currently
+  ema:
+    update_after_step: 0
+    inv_gamma: 1.0
+    power: 0.75
+    min_value: 0.0
+    max_value: 0.9999
